@@ -30,12 +30,16 @@ echo "⚠️  Do NOT interrupt with --no-verify — hooks are safety gates"
 echo ""
 
 push_to_main=0
-remote_oid=""
+main_remote_oid=""
 while read -r local_ref local_oid remote_ref remote_oid; do
   if [[ $remote_ref == "refs/heads/main" ]]; then
     push_to_main=1
+    # Capture on the matching line: the loop's final EOF read resets its
+    # own vars to empty, so a bare "$remote_oid" would always be blank here.
+    main_remote_oid="$remote_oid"
   fi
 done
+remote_oid="$main_remote_oid"
 
 if [[ $push_to_main -eq 1 ]]; then
   # Skip validation on first push (remote is empty)
