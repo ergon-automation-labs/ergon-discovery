@@ -283,7 +283,7 @@ defmodule BotArmyDiscovery.Audit do
         # 2026-09-05: eperm/enoent are routine on a dev tree (sandboxed dirs,
         # racing worktrees) — logging each one produced a ~70 lines/sec debug
         # flood and a 79MB log per 2h. Skip silently; only unusual errors log.
-        reason = if is_struct(e, File.Error), do: e.reason, else: :unknown
+        reason = if is_struct(e, File.Error), do: Map.get(e, :reason, :unknown), else: :unknown
 
         unless reason in [:eperm, :eacces, :enoent] do
           Logger.debug("[Discovery] Error walking #{dir}: #{inspect(e)}")
