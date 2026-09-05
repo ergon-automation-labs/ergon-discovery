@@ -175,7 +175,7 @@ _FIND_MONOREPO_ROOT = \
 	fi; \
 	for rel in "../../elixir_bots" "../../../elixir_bots"; do \
 		if [ -d "$$rel" ] && [ -f "$$rel/Makefile" ]; then \
-			if grep -q "verify-bot-nats:" "$$rel/Makefile"; then \
+			if grep -qs "verify-bot-nats:" "$$rel/Makefile" "$$rel"/make/*.mk; then \
 				echo "$$(cd $$rel && pwd)"; \
 				exit 0; \
 			fi; \
