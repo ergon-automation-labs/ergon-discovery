@@ -77,7 +77,8 @@ defmodule BotArmyDiscovery.Audit do
           # We use Gnat.pub instead of Gnat.request to have full control over the reply process
           Gnat.pub(conn, "bot_army.graph.query", payload, reply_to: reply_subject)
 
-          # Wait for the response
+          # Wait for the response (bounded — an unresponsive cache must not
+          # wedge active_audit forever, which would block all future audits).
           receive do
             {:msg, msg} ->
               if msg.topic == reply_subject do
@@ -85,7 +86,12 @@ defmodule BotArmyDiscovery.Audit do
                   {:ok, %{"graph" => graph}} -> {:ok, graph}
                   {:ok, %{"error" => err}} -> {:error, "Cache error: #{err}"}
                   {:ok, _} -> {:error, "Unexpected graph response format"}
-                  {:error, reason} -> {:error, "JSON decode failed: #{reason}"}
+                  # 2026-09-05: interpolate with inspect/1 — Jason.DecodeError does
+                  # not implement String.Chars, and "#{reason}" on it raised
+                  # Protocol.UndefinedError, crashing the audit task and skipping
+                  # the local-file fallback entirely (empty replies happen when
+                  # graphify_cache responds empty).
+                  {:error, reason} -> {:error, "JSON decode failed: #{inspect(reason)}"}
                 end
               else
                 {:error, "Received message on wrong subject: #{msg.topic}"}
@@ -93,6 +99,8 @@ defmodule BotArmyDiscovery.Audit do
 
             _ ->
               {:error, "Unexpected message received"}
+          after
+            15_000 -> {:error, :graph_query_timeout}
           end
 
         {:error, reason} ->
