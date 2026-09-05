@@ -1,0 +1,16 @@
+# Build artifacts
+/_build/
+/deps/
+/cover/
+/.elixir_ls/
+
+# Release tarballs (assets live on GitHub releases)
+/*.tar.gz
+
+# Local build/cache artifacts
+/.cache/
+/.compile-hash
+
+# ElixirLS / editor
+/.elixir_ls/
+/.dialyzer_ignore*plt
