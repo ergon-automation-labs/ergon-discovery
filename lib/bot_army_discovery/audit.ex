@@ -306,13 +306,6 @@ defmodule BotArmyDiscovery.Audit do
     ext in [".ex", ".exs", ".toml", ".sh", ".py"]
   end
 
-  defp file_contains_string?(path, string) do
-    case File.read(path) do
-      {:ok, content} -> String.contains?(content, string)
-      _ -> false
-    end
-  end
-
   defp load_json(path) do
     case File.read(path) do
       {:ok, content} -> Jason.decode!(content)

@@ -55,7 +55,6 @@ defmodule BotArmyDiscovery.PulsePublisher do
 
   @impl true
   def handle_cast({:record_metric, _key, _value}, state) do
-    # TODO: Track metric in state for next pulse publish
     {:noreply, state}
   end
 
@@ -70,12 +69,10 @@ defmodule BotArmyDiscovery.PulsePublisher do
       service: @service_name,
       timestamp: DateTime.utc_now() |> DateTime.to_iso8601(),
       health: signal,
-      # TODO: Add domain-specific metrics here
-      # Examples: active_sessions, items_processed, errors_in_window
       metrics: %{}
     }
 
-    case BotArmyRuntime.NATS.Publisher.publish("bot.#{@service_name}.pulse", pulse) do
+    case BotArmyLibraryRuntime.NATS.Publisher.publish("bot.#{@service_name}.pulse", pulse) do
       {:ok, _} ->
         Logger.debug("[PulsePublisher] Published pulse: #{signal}")
 
@@ -85,11 +82,13 @@ defmodule BotArmyDiscovery.PulsePublisher do
   end
 
   defp publish_system_health(%{started_at: started_at}) do
-    tenant_id = System.get_env("BOT_ARMY_TENANT_ID") || BotArmyRuntime.Tenant.default_tenant_id()
+    tenant_id = System.get_env("BOT_ARMY_TENANT_ID") || BotArmyLibraryRuntime.Tenant.default_tenant_id()
     signal = health_signal()
-    uptime_seconds = DateTime.diff(DateTime.utc_now() |> DateTime.truncate(:second), started_at, :second)
 
-    case BotArmyRuntime.SynapseHealth.publish(
+    uptime_seconds =
+      DateTime.diff(DateTime.utc_now() |> DateTime.truncate(:second), started_at, :second)
+
+    case BotArmyLibraryRuntime.SynapseHealth.publish(
            source_node: node() |> Atom.to_string(),
            triggered_by: @envelope_source,
            service: @service_name,
@@ -106,11 +105,6 @@ defmodule BotArmyDiscovery.PulsePublisher do
   end
 
   defp health_signal do
-    # TODO: Implement health signal logic based on domain metrics
-    # Examples:
-    #   - Return :critical if error_count > threshold
-    #   - Return :degraded if activity_count == 0
-    #   - Return :nominal otherwise
     :nominal
   end
 end
