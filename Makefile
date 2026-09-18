@@ -63,9 +63,6 @@ deps:
 test:
 	$(MIX) test
 
-credo:
-	$(MIX) credo
-
 dialyzer: deps
 	$(MIX) dialyzer
 
