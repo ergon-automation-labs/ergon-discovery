@@ -203,3 +203,16 @@ $(warning bot_army_infra not found — shared targets unavailable)
 else
 include $(BOT_ARMY_COMMON_MK)
 endif
+
+# Added 2026-10-08: this repo includes common.mk but defined no build
+# target. common.mk's `compile:` shells out to `_compile-impl`; with no
+# target, the wrapper's masked pipeline reported make's "No rule to make
+# target" as a successful compile, so the gap was invisible for years.
+_compile-impl:
+	@LOG_FILE="/tmp/compile-$(REPO_NAME)-$$(date +%s).log"; \
+	echo "Compiling $(REPO_NAME) and logging to $$LOG_FILE..."; \
+	set -o pipefail; \
+	$(MIX) compile 2>&1 | tee "$$LOG_FILE"; \
+	rc=$$?; \
+	echo "✓ Compilation log: $$LOG_FILE"; \
+	exit $$rc
